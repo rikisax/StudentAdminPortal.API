@@ -65,5 +65,33 @@ namespace StudentAdminPortal.API.Controllers
             //}
             //return Ok(domainModelStudents);
         }
+        [HttpPut]
+        [Route("[controller]/{studentId:guid}")]
+        public async Task<IActionResult> UpdateStudentAsync([FromRoute] Guid studentId, [FromBody] UpdateStudentRequest request)
+        {
+            if (await studentRepository.Exists(studentId))
+            {
+
+                //update Details
+                var updatedStudent = await studentRepository.UpdateStudent(studentId, mapper.Map<DataModels.Student>(request));
+                if (updatedStudent != null)
+                {
+                    return Ok(mapper.Map<Student>(updatedStudent));
+                }
+            }
+                return NotFound();
+        }
+
+        [HttpDelete]
+        [Route("[controller]/{studentId:guid}")]
+        public async Task<IActionResult> DeleteStudentAsync([FromRoute] Guid studentId)
+        {
+            if (await studentRepository.Exists(studentId)) 
+            { 
+                var student = await studentRepository.DeleteStudent(studentId);
+                    return Ok(mapper.Map<Student>(student));  //gli passo un DataModel e ritorno un DomainModel
+            }
+            return NotFound();
+        }
     }
 }
