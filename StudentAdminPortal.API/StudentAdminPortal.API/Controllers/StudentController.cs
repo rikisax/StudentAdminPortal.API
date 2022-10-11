@@ -19,6 +19,7 @@ namespace StudentAdminPortal.API.Controllers
 
         [HttpGet]
         [Route("[controller]/{Id:guid}")]
+        [ActionName("GetStudentAsync")]
         public async Task<IActionResult> GetStudentAsync([FromRoute] Guid Id)
         {
             var student = await studentRepository.GetStudentAsync(Id);
@@ -29,7 +30,7 @@ namespace StudentAdminPortal.API.Controllers
             return Ok(mapper.Map<Student>(student));
         }
 
-            [HttpGet]
+        [HttpGet]
         [Route("[controller]")]
         public async Task<IActionResult> GetAllStudentsAsync()
         {
@@ -65,10 +66,13 @@ namespace StudentAdminPortal.API.Controllers
             //}
             //return Ok(domainModelStudents);
         }
+
         [HttpPut]
         [Route("[controller]/{studentId:guid}")]
         public async Task<IActionResult> UpdateStudentAsync([FromRoute] Guid studentId, [FromBody] UpdateStudentRequest request)
         {
+            //ricevo dalla UI un oggetto DomainModel e lo passo al repository trasformandolo prima in DataModel tramite automapper.
+            //quindi ritorno un oggetto di nuovo rimappato da DataModel a DomainModel
             if (await studentRepository.Exists(studentId))
             {
 
@@ -92,6 +96,15 @@ namespace StudentAdminPortal.API.Controllers
                     return Ok(mapper.Map<Student>(student));  //gli passo un DataModel e ritorno un DomainModel
             }
             return NotFound();
+        }
+
+        [HttpPost]
+        [Route("[controller]/Add")]
+        public async Task<IActionResult> AddStudentAsync([FromBody] AddStudentRequest request)
+        {
+            var student = await studentRepository.AddStudent(mapper.Map<DataModels.Student>(request));
+            var addedStudent = mapper.Map<DomainModels.Student>(student);
+            return CreatedAtAction(nameof(GetStudentAsync),new {Id = student.Id},addedStudent);
         }
     }
 }
