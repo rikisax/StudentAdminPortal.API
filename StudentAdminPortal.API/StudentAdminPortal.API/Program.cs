@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using StudentAdminPortal.API.DataModels;
 using StudentAdminPortal.API.Repositories;
+using System.Net.NetworkInformation;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +32,8 @@ builder.Services.AddDbContext<StudentAdminContext>(options =>
 //Aggiunto per il progetto StudentAdminPortal
 builder.Services.AddScoped<IStudentRepository,SqlStudentRepository>();
 //Aggiunto per il progetto StudentAdminPortal
+builder.Services.AddScoped<IImageRepository, LocalStorageImageRepository>();
+//Aggiunto per il progetto StudentAdminPortal
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 
@@ -47,6 +51,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+//Aggiunto per il progetto StudentAdminPortal: per poter raggiungere la cartella Resources dal Client
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(Path.Combine(app.Environment.ContentRootPath,"Resources")),
+    RequestPath= "/Resources"
+});
+
 
 app.UseCors("angularApplication");
 

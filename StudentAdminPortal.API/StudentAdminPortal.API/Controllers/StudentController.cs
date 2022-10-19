@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StudentAdminPortal.API.DomainModels;
 using StudentAdminPortal.API.Repositories;
@@ -10,11 +11,13 @@ namespace StudentAdminPortal.API.Controllers
     {
         private readonly IStudentRepository studentRepository;
         private readonly IMapper mapper;
+        private readonly IImageRepository imageRepository;
 
-        public StudentController(IStudentRepository studentRepository, IMapper mapper)
+        public StudentController(IStudentRepository studentRepository, IMapper mapper, IImageRepository imageRepository)
         {
             this.studentRepository = studentRepository;
             this.mapper = mapper;
+            this.imageRepository = imageRepository;
         }
 
         [HttpGet]
@@ -104,7 +107,24 @@ namespace StudentAdminPortal.API.Controllers
         {
             var student = await studentRepository.AddStudent(mapper.Map<DataModels.Student>(request));
             var addedStudent = mapper.Map<DomainModels.Student>(student);
-            return CreatedAtAction(nameof(GetStudentAsync),new {Id = student.Id},addedStudent);
+            return CreatedAtAction(nameof(GetStudentAsync),new { Id = student.Id },addedStudent);
+        }
+
+        [HttpPost]
+        [Route("[controller]/{Id:guid}/upload-image")]
+        public async Task<IActionResult> UploadImage([FromRoute] Guid Id, IFormFile profileImage)
+        {
+            if (await studentRepository.Exists(Id))
+            {
+                var fileName = Guid.NewGuid() + Path.GetExtension(profileImage.FileName);
+                var fileImagePath=await imageRepository.Upload(profileImage, fileName);
+                if (await studentRepository.UpdateProfileImage(Id, fileImagePath))
+                {
+                    return Ok(fileImagePath);
+                }
+                return StatusCode(StatusCodes.Status500InternalServerError,"Error uploading image");
+            }
+            return NotFound();
         }
     }
 }
