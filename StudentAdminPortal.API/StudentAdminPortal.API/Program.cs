@@ -3,6 +3,8 @@ using StudentAdminPortal.API.DataModels;
 using StudentAdminPortal.API.Repositories;
 using System.Net.NetworkInformation;
 using System.IO;
+using FluentValidation.AspNetCore;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,9 +37,11 @@ builder.Services.AddScoped<IStudentRepository,SqlStudentRepository>();
 builder.Services.AddScoped<IImageRepository, LocalStorageImageRepository>();
 //Aggiunto per il progetto StudentAdminPortal
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
-
-
-
+//Aggiunto libreria FluentValidation: motodo descritto sul video corso udemy  di Sameer Saini (oggi deprecated)
+//builder.Services.AddFluentValidation(options => options.RegisterValidatorsFromAssemblyContaining<Program>());
+//nuovi statement da: https://github.com/FluentValidation/FluentValidation/issues/1965  e https://github.com/FluentValidation/FluentValidation/issues/1963
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 builder.Services.AddSwaggerGen();
 
